@@ -25,11 +25,11 @@ uCore OS Labs是用于清华大学计算机系本科操作系统课程的教学�
   - **工欲善其事，必先利其器**--请掌握七种武器  [实验常用工具列表](https://github.com/objectkuan/ucore_docs/blob/master/lab0/lab0_ref_ucore-tools.md)
   - **学至于行之而止矣**--请在实验中体会操作系统的精髓
   - **打通任督二脉**--lab1和lab2与x86硬件相关性较大，比较困难，有些同学由于畏难而止步与此，很可惜！仅仅熟读内功心法是不够的，通过实践lab1和lab2后，对计算机原理中的中断、段页表机制、特权级等的理解会更深入和贴近实际，这等同于打通了任督二脉，后面的实验将一片坦途。
-  
- 
+
+
 # 实验内容
 ## 实验指导书
- - [实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/) 
+ - [实验指导书 on gitbook](http://objectkuan.gitbooks.io/ucore-docs/)
  - [实验常用工具列表](https://github.com/objectkuan/ucore_docs/blob/master/lab0/lab0_ref_ucore-tools.md)
 
 > 【提醒】对于实验中的开发: `git`, `gcc`,`gdb`,`qemu`,`make`,`diff & patch`, `bash shell`这些重要工具的基本用法是需要提前掌握的.
@@ -81,7 +81,7 @@ VirtualBox虚拟机软件
 
 --------------
 
-压缩包可以用[haozip for windows软件](http://www.haozip.com)解压。解压压缩包后，可得到如下内容（大约6GB多）。 
+压缩包可以用[haozip for windows软件](http://www.haozip.com)解压。解压压缩包后，可得到如下内容（大约6GB多）。
 ```
 mooc-os-2015-2.vdi
 ```
@@ -112,9 +112,9 @@ Using gcc49
 
 #### 2.install binutils, gcc, gdb targeting i386-elf
 
-* `brew tap altkatz/homebrew-gcc_cross_compilers` 
+* `brew tap altkatz/homebrew-gcc_cross_compilers`
 * `brew install i386-elf-gcc` # may take an hour
-* `brew install i386-elf-gdb` 
+* `brew install i386-elf-gdb`
 
 #### 3. install qemu-system-i386
 
@@ -128,7 +128,7 @@ Using gcc49
 
 （这里假定安装的要是ubuntu14.04 x86-64的系统）
 
-1) 在物理PC上安装ubuntu 
+1) 在物理PC上安装ubuntu
 
 下载ubuntu 14.04 64bit img镜像，需要把镜像刻录到可启动的光盘或闪盘中,把光盘或闪盘放入物理PC，并在物理PC上重启安装。
 
@@ -169,7 +169,7 @@ OR
 4) 修改完毕后，编译实验代码
 ```
   $make
-``` 
+```
 
 5) 如果编译无误，则可以运行测试一下
 ```
@@ -177,7 +177,7 @@ OR
 ```
 
 6) 如果需要调试，
-  
+
   a. 可基于cgdb的字符方式(以lab1_ans为例)
 ```
   $cd labcodes_answer/lab1_ans
@@ -205,7 +205,7 @@ OR
 - [piazza，OS课程技术交流的主要在线QA平台](https://piazza.com/tsinghua.edu.cn/spring2015/30240243x/home)
 - QQ群 181873534  主要用于事件通知，聊天等
 
-## 开发维护人员 
+## 开发维护人员
 - [陈渝](http://soft.cs.tsinghua.edu.cn/~chen)  yuchen AT tsinghua.edu.cn
 - 茅俊杰 eternal.n08 AT gmail.com
 
@@ -228,5 +228,5 @@ ucore OS中包含的xv6&jos代码版权属于Frans Kaashoek, Robert Morris,
 and Russ Cox，使用MIT License。ucore OS中包含的OS/161代码版权属于
 David A. Holland。包含的ostep练习的版权属于Remzi H. Arpaci-Dusseau and Andrea C. Arpaci-Dusseau。其他内部开发的ucore OS和相关练习的代码版权属于
 陈渝、王乃铮、向勇，并采用GPL License. ucore OS相关的文档版权属于
-陈渝、向勇，并采用 
-Creative Commons Attribution/Share-Alike (CC-BY-SA) License. 
+陈渝、向勇，并采用
+Creative Commons Attribution/Share-Alike (CC-BY-SA) License.
