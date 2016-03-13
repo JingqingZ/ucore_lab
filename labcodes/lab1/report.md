@@ -83,6 +83,7 @@ seta20.2:
 ```
 
 ### 2. 如何初始化GDT表
+
 ```
 // 读入GDT表格
 lgdt gdtdesc
@@ -95,6 +96,7 @@ ljmp $PROT_MODE_CSEG, $protcseg
 ```
 
 ### 3. 如何使能和进入保护模式
+
 ```
 // 设置段寄存器
 movw $PROT_MODE_DSEG, %ax
