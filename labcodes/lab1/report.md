@@ -84,30 +84,30 @@ seta20.2:
 
 ### 2. 如何初始化GDT表
 ```
-# 读入GDT表格
+// 读入GDT表格
 lgdt gdtdesc
 movl %cr0, %eax
 orl $CR0_PE_ON, %eax
 movl %eax, %cr0
 
-# 长跳转到下一条指令，但是已经进入到32位的模式
+// 长跳转到下一条指令，但是已经进入到32位的模式
 ljmp $PROT_MODE_CSEG, $protcseg
 ```
 
 ### 3. 如何使能和进入保护模式
 ```
-# 设置段寄存器
+// 设置段寄存器
 movw $PROT_MODE_DSEG, %ax
 movw %ax, %ds
 movw %ax, %es
 movw %ax, %fs
 movw %ax, %gs
 movw %ax, %ss
-# 初始化堆栈
+// 初始化堆栈
 movl $0x0, %ebp
 movl $start, %esp
 
-# 进入保护模式，可以调用boot了
+// 进入保护模式，可以调用boot了
 call bootmain
 ```
 
