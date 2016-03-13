@@ -66,19 +66,19 @@
 > bootasm.S开启A20的方式是通过8042寄存器也就是通过键盘控制器开启A20
 ```
 seta20.1:
-    inb $0x64, %al      # 等待8042寄存器闲置
+    inb $0x64, %al      // 等待8042寄存器闲置
     testb $0x2, %al
     jnz seta20.1
 
-    movb $0xd1, %al     # 发出写数据到8042寄存器P2端口的指令
+    movb $0xd1, %al     // 发出写数据到8042寄存器P2端口的指令
     outb %al, $0x64 
 
 seta20.2:
-    inb $0x64, %al      # 等待8042寄存器闲置
+    inb $0x64, %al      // 等待8042寄存器闲置
     testb $0x2, %al
     jnz seta20.2
 
-    movb $0xdf, %al     # 写入0xdf，设置A20为1，打开A20
+    movb $0xdf, %al     // 写入0xdf，设置A20为1，打开A20
     outb %al, $0x60     
 ```
 
