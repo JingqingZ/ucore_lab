@@ -364,9 +364,7 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     *   mm->pgdir : the PDT of these vma
     *
     */
-#if 0
-    /*LAB3 EXERCISE 1: 2012011380*/
-    if ((ptep = get_pte(mm->pgdir, addr, 1) == NULL) {              //(1) try to find a pte, if pte's PT(Page Table) isn't existed, then create a PT.
+    if ((ptep = get_pte(mm->pgdir, addr, 1)) == NULL) {              //(1) try to find a pte, if pte's PT(Page Table) isn't existed, then create a PT.
         cprintf("get_pte failed\n");
         goto failed;
     }
@@ -390,17 +388,25 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     */
         if(swap_init_ok) {
             struct Page *page=NULL;
-                                    //(1）According to the mm AND addr, try to load the content of right disk page
-                                    //    into the memory which page managed.
-                                    //(2) According to the mm, addr AND page, setup the map of phy addr <---> logical addr
-                                    //(3) make the page swappable.
+            if ((ret = swap_in(mm, addr, &page)) != 0) {         //(1）According to the mm AND addr, try to load the content of right disk page
+                cprintf("swap_in failed\n");                     //    into the memory which page managed.
+                goto failed;
+            }
+            if (page_insert(mm->pgdir, page, addr, perm) != 0) {         //(2) According to the mm, addr AND page, setup the map of phy addr <---> logical addr
+                cprintf("page_insert failed\n");
+                goto failed;
+            }
+            if (swap_map_swappable(mm, addr, page, 1) != 0) {          //(3) make the page swappable.
+                cprintf("swap_map_swappable failed\n");
+                goto failed;
+            }
+            page->pra_vaddr = addr;
         }
         else {
             cprintf("no swap_init_ok but ptep is %x, failed\n",*ptep);
             goto failed;
         }
    }
-#endif
    ret = 0;
 failed:
     return ret;
