@@ -22,20 +22,20 @@ manage all these details efficiently. In ucore, a thread is just a special kind 
 process state       :     meaning               -- reason
     PROC_UNINIT     :   uninitialized           -- alloc_proc
     PROC_SLEEPING   :   sleeping                -- try_free_pages, do_wait, do_sleep
-    PROC_RUNNABLE   :   runnable(maybe running) -- proc_init, wakeup_proc, 
+    PROC_RUNNABLE   :   runnable(maybe running) -- proc_init, wakeup_proc,
     PROC_ZOMBIE     :   almost dead             -- do_exit
 
 -----------------------------
 process state changing:
-                                            
+
   alloc_proc                                 RUNNING
       +                                   +--<----<--+
       +                                   + proc_run +
-      V                                   +-->---->--+ 
+      V                                   +-->---->--+
 PROC_UNINIT -- proc_init/wakeup_proc --> PROC_RUNNABLE -- try_free_pages/do_wait/do_sleep --> PROC_SLEEPING --
                                            A      +                                                           +
                                            |      +--- do_exit --> PROC_ZOMBIE                                +
-                                           +                                                                  + 
+                                           +                                                                  +
                                            -----------------------wakeup_proc----------------------------------
 -----------------------------
 process relations
@@ -51,9 +51,9 @@ SYS_wait        : wait process                            -->do_wait
 SYS_exec        : after fork, process execute a program   -->load a program and refresh the mm
 SYS_clone       : create child thread                     -->do_fork-->wakeup_proc
 SYS_yield       : process flag itself need resecheduling, -- proc->need_sched=1, then scheduler will rescheule this process
-SYS_sleep       : process sleep                           -->do_sleep 
+SYS_sleep       : process sleep                           -->do_sleep
 SYS_kill        : kill process                            -->do_kill-->proc->flags |= PF_EXITING
-                                                                 -->wakeup_proc-->do_wait-->do_exit   
+                                                                 -->wakeup_proc-->do_wait-->do_exit
 SYS_getpid      : get the process's pid
 
 */
@@ -66,6 +66,7 @@ struct proc_struct *idleproc = NULL;
 // init procs
 struct proc_struct *initproc1 = NULL;
 struct proc_struct *initproc2 = NULL;
+struct proc_struct *initproc3 = NULL;
 // current proc
 struct proc_struct *current = NULL;
 
@@ -169,6 +170,7 @@ proc_run(struct proc_struct *proc) {
             switch_to(&(prev->context), &(next->context));
         }
         local_intr_restore(intr_flag);
+        cprintf("proc_run:: pid: %d, name: %s\n",proc->pid, proc->name);
     }
 }
 
@@ -197,7 +199,7 @@ find_proc(int pid) {
 }
 
 // kernel_thread - create a kernel thread using "fn" function
-// NOTE: the contents of temp trapframe tf will be copied to 
+// NOTE: the contents of temp trapframe tf will be copied to
 //       proc->tf in do_fork-->copy_thread function
 int
 kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
@@ -283,6 +285,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     list_add_before(&proc_list, &proc->list_link);
     //    5. call wakeup_proc to make the new child process RUNNABLE
     wakeup_proc(proc);
+    cprintf("proc_wakeup:: pid: %d, name: %s from PROC_UNINIT to PROC_RUNABLE\n",proc->pid, proc->name);
     //    7. set ret vaule using child proc's pid
     nr_process++;
     ret = proc->pid;
@@ -327,6 +330,7 @@ repeat:
 	}
     if (haskid) {
 		cprintf("do_wait: has kid begin\n");
+        cprintf("proc_wait:: pid: %d, name: %s from PROC_RUNABLE to PROC_SLEEPING\n",current->pid, current->name);
         current->state = PROC_SLEEPING;
         current->wait_state = WT_CHILD;
         schedule();
@@ -336,6 +340,7 @@ repeat:
 
 found:
 	cprintf("do_wait: has kid find child  pid%d\n",proc->pid);
+    cprintf("proc_exit:: pid: %d, name: %s from PROC_ZOMBIE to exit\n",proc->pid, proc->name);
     if (proc == idleproc ) {
         panic("wait idleproc \n");
     }
@@ -360,6 +365,7 @@ do_exit(int error_code) {
     }
 	cprintf(" do_exit: proc pid %d will exit\n", current->pid);
 	cprintf(" do_exit: proc  parent %x\n", current->parent);
+    cprintf("proc_exit:: pid: %d, name: %s from PROC_RUNABLE to PROC_ZOMBIE\n",current->pid, current->name);
     current->state = PROC_ZOMBIE;
 	bool intr_flag;
     struct proc_struct *proc;
@@ -386,7 +392,7 @@ init_main(void *arg) {
     return 0;
 }
 
-// proc_init - set up the first kernel thread idleproc "idle" by itself and 
+// proc_init - set up the first kernel thread idleproc "idle" by itself and
 //           - create the second kernel thread init_main
 void
 proc_init(void) {
@@ -409,16 +415,20 @@ proc_init(void) {
 
     int pid1= kernel_thread(init_main, "init main1: Hello world!!", 0);
     int pid2= kernel_thread(init_main, "init main2: Hello world!!", 0);
-    if (pid1 <= 0 || pid2<=0) {
-        panic("create kernel thread init_main1 or 2 failed.\n");
+    int pid3= kernel_thread(init_main, "init main3: Hello world!!", 0);
+    if (pid1 <= 0 || pid2<=0 || pid3<=0) {
+        panic("create kernel thread init_main1 or 2 or 3 failed.\n");
     }
 
     initproc1 = find_proc(pid1);
 	initproc2 = find_proc(pid2);
+    initproc3 = find_proc(pid3);
     set_proc_name(initproc1, "init1");
 	set_proc_name(initproc2, "init2");
+    set_proc_name(initproc3, "init3");
     cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc1->pid, initproc1->name);
 	cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc2->pid, initproc2->name);
+    cprintf("proc_init:: Created kernel thread init_main--> pid: %d, name: %s\n",initproc3->pid, initproc3->name);
     assert(idleproc != NULL && idleproc->pid == 0);
 }
 
