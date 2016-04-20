@@ -11,7 +11,13 @@ wakeup_proc(struct proc_struct *proc) {
     local_intr_save(intr_flag);
     {
         if (proc->state != PROC_RUNNABLE) {
+            char *previous_state;
+            if (proc->state == PROC_SLEEPING)
+                previous_state = "PROC_SLEEPING";
+            else
+                previous_state = "PROC_UNINIT";
             proc->state = PROC_RUNNABLE;
+            cprintf("proc pid = %d, name = %s, from %s to PROC_RUNNABLE\n", current->pid, current->name, previous_state);
             proc->wait_state = 0;
         }
         else {
