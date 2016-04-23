@@ -23,20 +23,20 @@ manage all these details efficiently. In ucore, a thread is just a special kind 
 process state       :     meaning               -- reason
     PROC_UNINIT     :   uninitialized           -- alloc_proc
     PROC_SLEEPING   :   sleeping                -- try_free_pages, do_wait, do_sleep
-    PROC_RUNNABLE   :   runnable(maybe running) -- proc_init, wakeup_proc,
+    PROC_RUNNABLE   :   runnable(maybe running) -- proc_init, wakeup_proc, 
     PROC_ZOMBIE     :   almost dead             -- do_exit
 
 -----------------------------
 process state changing:
-
+                                            
   alloc_proc                                 RUNNING
       +                                   +--<----<--+
       +                                   + proc_run +
-      V                                   +-->---->--+
+      V                                   +-->---->--+ 
 PROC_UNINIT -- proc_init/wakeup_proc --> PROC_RUNNABLE -- try_free_pages/do_wait/do_sleep --> PROC_SLEEPING --
                                            A      +                                                           +
                                            |      +--- do_exit --> PROC_ZOMBIE                                +
-                                           +                                                                  +
+                                           +                                                                  + 
                                            -----------------------wakeup_proc----------------------------------
 -----------------------------
 process relations
@@ -52,9 +52,9 @@ SYS_wait        : wait process                            -->do_wait
 SYS_exec        : after fork, process execute a program   -->load a program and refresh the mm
 SYS_clone       : create child thread                     -->do_fork-->wakeup_proc
 SYS_yield       : process flag itself need resecheduling, -- proc->need_sched=1, then scheduler will rescheule this process
-SYS_sleep       : process sleep                           -->do_sleep
+SYS_sleep       : process sleep                           -->do_sleep 
 SYS_kill        : kill process                            -->do_kill-->proc->flags |= PF_EXITING
-                                                                 -->wakeup_proc-->do_wait-->do_exit
+                                                                 -->wakeup_proc-->do_wait-->do_exit   
 SYS_getpid      : get the process's pid
 
 */
@@ -87,7 +87,7 @@ static struct proc_struct *
 alloc_proc(void) {
     struct proc_struct *proc = kmalloc(sizeof(struct proc_struct));
     if (proc != NULL) {
-    //LAB4:EXERCISE1 2012011380
+    //LAB4:EXERCISE1 YOUR CODE
     /*
      * below fields in proc_struct need to be initialized
      *       enum proc_state state;                      // Process state
@@ -115,6 +115,8 @@ alloc_proc(void) {
         proc->cr3 = boot_cr3;
         proc->flags = 0;
         memset(proc->name, 0, PROC_NAME_LEN);
+        proc->wait_state = 0;
+        proc->cptr = proc->optr = proc->yptr = NULL;
     }
     return proc;
 }
@@ -251,7 +253,7 @@ find_proc(int pid) {
 }
 
 // kernel_thread - create a kernel thread using "fn" function
-// NOTE: the contents of temp trapframe tf will be copied to
+// NOTE: the contents of temp trapframe tf will be copied to 
 //       proc->tf in do_fork-->copy_thread function
 int
 kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
@@ -376,7 +378,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto fork_out;
     }
     ret = -E_NO_MEM;
-    //LAB4:EXERCISE2 2012011380
+    //LAB4:EXERCISE2 YOUR CODE
     /*
      * Some Useful MACROs, Functions and DEFINEs, you can use them in below implementation.
      * MACROs or Functions:
@@ -404,26 +406,30 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     if ((proc = alloc_proc()) == NULL) {
         goto fork_out;
     }
+
     proc->parent = current;
+    assert(current->wait_state == 0);
 
     if (setup_kstack(proc) != 0) {
         goto bad_fork_cleanup_proc;
     }
-
-    copy_mm(clone_flags, proc);
+    if (copy_mm(clone_flags, proc) != 0) {
+        goto bad_fork_cleanup_kstack;
+    }
     copy_thread(proc, stack, tf);
 
-    bool intr_flags;
-    local_intr_save(intr_flags);
+    bool intr_flag;
+    local_intr_save(intr_flag);
     {
         proc->pid = get_pid();
         hash_proc(proc);
-        list_add(&proc_list, &(proc->list_link));
-        nr_process ++;
+        set_links(proc);
+
     }
-    local_intr_restore(intr_flags);
+    local_intr_restore(intr_flag);
 
     wakeup_proc(proc);
+
     ret = proc->pid;
 fork_out:
     return ret;
@@ -447,7 +453,7 @@ do_exit(int error_code) {
     if (current == initproc) {
         panic("initproc exit.\n");
     }
-
+    
     struct mm_struct *mm = current->mm;
     if (mm != NULL) {
         lcr3(boot_cr3);
@@ -460,7 +466,7 @@ do_exit(int error_code) {
     }
     current->state = PROC_ZOMBIE;
     current->exit_code = error_code;
-
+    
     bool intr_flag;
     struct proc_struct *proc;
     local_intr_save(intr_flag);
@@ -472,7 +478,7 @@ do_exit(int error_code) {
         while (current->cptr != NULL) {
             proc = current->cptr;
             current->cptr = proc->optr;
-
+    
             proc->yptr = NULL;
             if ((proc->optr = initproc->cptr) != NULL) {
                 initproc->cptr->yptr = proc;
@@ -487,7 +493,7 @@ do_exit(int error_code) {
         }
     }
     local_intr_restore(intr_flag);
-
+    
     schedule();
     panic("do_exit will not return!! %d.\n", current->pid);
 }
@@ -604,7 +610,7 @@ load_icode(unsigned char *binary, size_t size) {
     assert(pgdir_alloc_page(mm->pgdir, USTACKTOP-2*PGSIZE , PTE_USER) != NULL);
     assert(pgdir_alloc_page(mm->pgdir, USTACKTOP-3*PGSIZE , PTE_USER) != NULL);
     assert(pgdir_alloc_page(mm->pgdir, USTACKTOP-4*PGSIZE , PTE_USER) != NULL);
-
+    
     //(5) set current process's mm, sr3, and set CR3 reg = physical addr of Page Directory
     mm_count_inc(mm);
     current->mm = mm;
@@ -614,7 +620,7 @@ load_icode(unsigned char *binary, size_t size) {
     //(6) setup trapframe for user environment
     struct trapframe *tf = current->tf;
     memset(tf, 0, sizeof(struct trapframe));
-    /* LAB5:EXERCISE1 2012011380
+    /* LAB5:EXERCISE1 YOUR CODE
      * should set tf_cs,tf_ds,tf_es,tf_ss,tf_esp,tf_eip,tf_eflags
      * NOTICE: If we set trapframe correctly, then the user level process can return to USER MODE from kernel. So
      *          tf_cs should be USER_CS segment (see memlayout.h)
@@ -828,12 +834,13 @@ init_main(void *arg) {
     assert(nr_process == 2);
     assert(list_next(&proc_list) == &(initproc->list_link));
     assert(list_prev(&proc_list) == &(initproc->list_link));
-
+    assert(nr_free_pages_store == nr_free_pages());
+    assert(kernel_allocated_store == kallocated());
     cprintf("init check memory pass.\n");
     return 0;
 }
 
-// proc_init - set up the first kernel thread idleproc "idle" by itself and
+// proc_init - set up the first kernel thread idleproc "idle" by itself and 
 //           - create the second kernel thread init_main
 void
 proc_init(void) {
