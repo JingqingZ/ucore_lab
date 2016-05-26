@@ -37,6 +37,7 @@ proc_stride_comp_f(void *a, void *b)
 static void
 stride_init(struct run_queue *rq) {
      /* LAB6: YOUR CODE */
+     cprintf("sche stride init\n");
      list_init(&(rq->run_list));
      rq->lab6_run_pool = NULL;
      rq->proc_num = 0;
@@ -51,13 +52,20 @@ stride_init(struct run_queue *rq) {
  *
  * proc->time_slice denotes the time slices allocation for the
  * process, which should set to rq->max_time_slice.
- * 
+ *
  * hint: see proj13.1/libs/skew_heap.h for routines of the priority
  * queue structures.
  */
 static void
 stride_enqueue(struct run_queue *rq, struct proc_struct *proc) {
      /* LAB6: YOUR CODE */
+    cprintf("sche stride enqueue\n");
+    cprintf("enqueuing proc: pid: %d\n", proc->pid);
+    cprintf("enqueuing proc: runs: %d\n", proc->runs);
+    cprintf("enqueuing proc: eip: 0x%08x\n", proc->context.eip);
+    cprintf("enqueuing proc: esp: 0x%08x\n", proc->context.esp);
+    cprintf("enqueuing proc: tf cs: 0x%08x\n", proc->tf->tf_cs);
+    cprintf("enqueuing proc: time slice: %d\n", proc->time_slice);
 #if USE_SKEW_HEAP
      rq->lab6_run_pool =
           skew_heap_insert(rq->lab6_run_pool, &(proc->lab6_run_pool), proc_stride_comp_f);
@@ -83,6 +91,13 @@ stride_enqueue(struct run_queue *rq, struct proc_struct *proc) {
 static void
 stride_dequeue(struct run_queue *rq, struct proc_struct *proc) {
      /* LAB6: YOUR CODE */
+    cprintf("sche stride dequeue\n");
+    cprintf("dequeuing proc: pid: %d\n", proc->pid);
+    cprintf("dequeuing proc: runs: %d\n", proc->runs);
+    cprintf("dequeuing proc: eip: 0x%08x\n", proc->context.eip);
+    cprintf("dequeuing proc: esp: 0x%08x\n", proc->context.esp);
+    cprintf("dequeuing proc: tf cs: 0x%08x\n", proc->tf->tf_cs);
+    cprintf("dequeuing proc: time slice: %d\n", proc->time_slice);
 #if USE_SKEW_HEAP
      rq->lab6_run_pool =
           skew_heap_remove(rq->lab6_run_pool, &(proc->lab6_run_pool), proc_stride_comp_f);
@@ -108,6 +123,7 @@ stride_dequeue(struct run_queue *rq, struct proc_struct *proc) {
 static struct proc_struct *
 stride_pick_next(struct run_queue *rq) {
      /* LAB6: YOUR CODE */
+    cprintf("sche stride pick up next proc\n");
 #if USE_SKEW_HEAP
      if (rq->lab6_run_pool == NULL) return NULL;
      struct proc_struct *p = le2proc(rq->lab6_run_pool, lab6_run_pool);
@@ -116,7 +132,7 @@ stride_pick_next(struct run_queue *rq) {
 
      if (le == &rq->run_list)
           return NULL;
-     
+
      struct proc_struct *p = le2proc(le, run_link);
      le = list_next(le);
      while (le != &rq->run_list)
@@ -144,6 +160,7 @@ stride_pick_next(struct run_queue *rq) {
 static void
 stride_proc_tick(struct run_queue *rq, struct proc_struct *proc) {
      /* LAB6: YOUR CODE */
+     cprintf("sche stride proc tick\n");
      if (proc->time_slice > 0) {
           proc->time_slice --;
      }

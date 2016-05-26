@@ -30,6 +30,7 @@ TOTALS      Seek:  0  Rotate:105  Transfer: 30  Total: 135
 $ ./disksim.py -a 10，11 -G
 ```
 表明发出了2个磁盘访问请求，可得到如下的结果
+
 ```
 REQUESTS ['10', '11']
 
@@ -43,11 +44,13 @@ TOTALS      Seek:  0  Rotate:105  Transfer: 60  Total: 165
 
 如果需要寻道，比如执行
 
+
 ```
 $ ./disksim.py -a 10，18 -G
 ```
 
 执结果如下
+
 ```
 REQUESTS ['10', '18’]
 Sector:  10  Seek:  0  Rotate:105  Transfer: 30  Total: 135
@@ -60,27 +63,77 @@ TOTALS      Seek: 40  Rotate:275  Transfer: 60  Total: 375
 请回答如下问题：
 
 ## 问题 1：请执行 FIFO磁盘调度策略
+请回答每个磁盘请求序列的IO访问时间
 
 ```
 ./disksim.py  采用FIFO -a 0
-./disksim.py   -a 6
-./disksim.py   -a 30
-./disksim.py   -a 7,30,8
-./disksim.py   -a 10,11,12,13，24,1
+
+Block:   0  Seek:  0  Rotate:165  Transfer: 30  Total: 195
+
+TOTALS      Seek:  0  Rotate:165  Transfer: 30  Total: 195
 ```
-请回答每个磁盘请求序列的IO访问时间
+
+```
+./disksim.py   -a 6
+
+Block:   6  Seek:  0  Rotate:345  Transfer: 30  Total: 375
+
+TOTALS      Seek:  0  Rotate:345  Transfer: 30  Total: 375
+```
+
+```
+./disksim.py   -a 30
+
+Block:  30  Seek: 80  Rotate:265  Transfer: 30  Total: 375
+
+TOTALS      Seek: 80  Rotate:265  Transfer: 30  Total: 375
+```
+
+```
+./disksim.py   -a 7,30,8
+
+Block:   7  Seek:  0  Rotate: 15  Transfer: 30  Total:  45
+Block:  30  Seek: 80  Rotate:220  Transfer: 30  Total: 330
+Block:   8  Seek: 80  Rotate:310  Transfer: 30  Total: 420
+
+TOTALS      Seek:160  Rotate:545  Transfer: 90  Total: 795
+
+```
+
+```
+./disksim.py   -a 10,11,12,13,24,1
+
+Block:  10  Seek:  0  Rotate:105  Transfer: 30  Total: 135
+Block:  11  Seek:  0  Rotate:  0  Transfer: 30  Total:  30
+Block:  12  Seek: 40  Rotate:320  Transfer: 30  Total: 390
+Block:  13  Seek:  0  Rotate:  0  Transfer: 30  Total:  30
+Block:  24  Seek: 40  Rotate:260  Transfer: 30  Total: 330
+Block:   1  Seek: 80  Rotate:280  Transfer: 30  Total: 390
+
+TOTALS      Seek:160  Rotate:965  Transfer:180  Total:1305
+```
 
 ## 问题 2：请执行 SSTF磁盘调度策略
+请回答每个磁盘请求序列的IO访问时间
 
 ```
-./disksim.py   -a 10,11,12,13，24,1
+./disksim.py   -a 10,11,12,13,24,1 -p SSTF
+
+Block:  10  Seek:  0  Rotate:105  Transfer: 30  Total: 135
+Block:  11  Seek:  0  Rotate:  0  Transfer: 30  Total:  30
+Block:   1  Seek:  0  Rotate: 30  Transfer: 30  Total:  60
+Block:  12  Seek: 40  Rotate:260  Transfer: 30  Total: 330
+Block:  13  Seek:  0  Rotate:  0  Transfer: 30  Total:  30
+Block:  24  Seek: 40  Rotate:260  Transfer: 30  Total: 330
+
+TOTALS      Seek: 80  Rotate:655  Transfer:180  Total: 915
 ```
-请回答每个磁盘请求序列的IO访问时间
+
 
 ## 问题 3：请执行 SCAN, C-SCAN磁盘调度策略
+请回答每个磁盘请求序列的IO访问时间
 
 ```
-./disksim.py   -a 10,11,12,13，24,1
+./disksim.py   -a 10,11,12,13,24,1 -p SCAN
 ```
-请回答每个磁盘请求序列的IO访问时间
 
