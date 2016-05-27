@@ -123,6 +123,7 @@ alloc_proc(void) {
      *     uint32_t lab6_priority;                     // FOR LAB6 ONLY: the priority of process, set by lab6_set_priority(uint32_t)
      */
     //LAB8:EXERCISE2 2012011380 HINT:need add some code to init fs in proc_struct, ...
+    //
 		proc->state = PROC_UNINIT;
         proc->pid = -1;
         proc->runs = 0;
